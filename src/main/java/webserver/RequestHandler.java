@@ -10,6 +10,9 @@ import controller.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
+import webserver.request.HttpRequest;
+import webserver.request.HttpRequestDefault;
+import webserver.request.RequestLine;
 
 /**
  * Note: 참고할  RequestHandler: com.sun.tools.sjavac.server.RequestHandler
@@ -44,7 +47,7 @@ public class RequestHandler extends Thread {
     private byte[] createByteData(HttpRequest request) throws IOException {
         byte[] body = "helloWorld".getBytes();
 
-        if (RequestLine.HttpMethod.GET.name().equals(request.getRequestLine().getMethod())) {
+        if (RequestLine.HttpMethod.GET.equals(request.getRequestLine().getMethod())) {
             if (request.getRequestLine().getUrl().contains(".html")) {
                 log.info(request.getRequestLine().getUrl());
                 final String url = "./webapp" + request.getRequestLine().getUrl();
@@ -55,7 +58,7 @@ public class RequestHandler extends Thread {
             } else {
                 executeGetController(request);
             }
-        } else if(RequestLine.HttpMethod.POST.name().equals(request.getRequestLine().getMethod())){
+        } else if(RequestLine.HttpMethod.POST.equals(request.getRequestLine().getMethod())){
             executePostController(request);
         }
         return body;

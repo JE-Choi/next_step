@@ -1,5 +1,6 @@
-package webserver;
+package webserver.request;
 
+import java.util.Arrays;
 import java.util.Objects;
 
 public class RequestLine {
@@ -10,17 +11,17 @@ public class RequestLine {
         }
     };
 
-    private final String method;
+    private final HttpMethod method;
     private final String url;
     private final String httpVersion;
 
     public RequestLine(final String method, final String url, final String httpVersion) {
-        this.method = method;
+        this.method = HttpMethod.getMethod(method);
         this.url = url;
         this.httpVersion = httpVersion;
     }
 
-    public String getMethod() {
+    public HttpMethod getMethod() {
         return method;
     }
 
@@ -33,7 +34,10 @@ public class RequestLine {
     }
 
     public enum HttpMethod {
-        GET, POST, PUT, DELETE;
+        GET, POST, PUT, DELETE, NOT_FOUND;
+        public static HttpMethod getMethod(final String str) {
+            return Arrays.stream(values()).filter(method -> method.name().equals(str)).findFirst().orElse(NOT_FOUND);
+        }
     }
 
     @Override

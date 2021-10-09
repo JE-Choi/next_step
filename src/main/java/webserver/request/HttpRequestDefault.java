@@ -1,4 +1,4 @@
-package webserver;
+package webserver.request;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -18,10 +18,13 @@ import java.util.*;
 public class HttpRequestDefault implements HttpRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpRequestDefault.class);
     private RequestLine requestLine = RequestLine.NULL_OBJECT;
-    private RequestHeader requestHeader = RequestHeader.NULL_OBJECT;
+    private RequestHeader requestHeaderImpl = RequestHeader.NULL_OBJECT;
     private Map<String, String> requestBody = new HashMap<>();
 
     public HttpRequestDefault(final BufferedReader bufferedReader) throws IOException {
+        if(Objects.isNull(bufferedReader)){
+            return;
+        }
         setHeader(bufferedReader);
         setBody(bufferedReader);
     }
@@ -36,10 +39,10 @@ public class HttpRequestDefault implements HttpRequest {
 
     @Override
     public RequestHeader getRequestHeader() {
-        if (!requestHeader.isValid()) {
+        if (!requestHeaderImpl.isValid()) {
             throw new IllegalStateException("requestHeader is valid");
         }
-        return requestHeader;
+        return requestHeaderImpl;
     }
 
     @Override
@@ -50,19 +53,25 @@ public class HttpRequestDefault implements HttpRequest {
     private void setHeader(final BufferedReader bufferedReader) throws IOException {
         final RequestHeader requestHeader = new RequestHeader();
         String line = bufferedReader.readLine();
-
         while (StringUtils.isNotEmpty(line)) {
-            HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
-            if (Objects.isNull(pair)) {
-                final String[] tokens = line.split("\\s");
-                requestLine = new RequestLine(tokens[0], tokens[1], tokens[2]);
-            } else {
-                requestHeader.put(pair.getKey(), pair.getValue());
-            }
+            addHeader(line, requestHeader);
             line = bufferedReader.readLine();
         }
 
-        this.requestHeader = requestHeader;
+        this.requestHeaderImpl = requestHeader;
+    }
+
+    // Question: 이름 괜찮은가요?
+    private void addHeader(final String line, final RequestHeader requestHeader) {
+        HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
+        final boolean isRequestLine = Objects.isNull(pair);
+        final boolean isRequestHeader = Objects.nonNull(pair);
+        if (isRequestLine) {
+            final String[] tokens = line.split("\\s");
+            this.requestLine = new RequestLine(tokens[0], tokens[1], tokens[2]);
+        } else if (isRequestHeader) {
+            requestHeader.put(pair.getKey(), pair.getValue());
+        }
     }
 
     private void setBody(final BufferedReader bufferedReader) throws IOException {
@@ -74,7 +83,7 @@ public class HttpRequestDefault implements HttpRequest {
                 this.requestBody = HttpRequestUtils.parseQueryString(body);
             }
         } catch (NumberFormatException | NullPointerException e) {
-            // Question: Exception은 잡아야 하는데, 아무처리 하기 싫을때 ?
+            // ...✔ ok ok~~
         }
     }
 

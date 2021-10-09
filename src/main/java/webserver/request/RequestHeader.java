@@ -1,4 +1,4 @@
-package webserver;
+package webserver.request;
 
 import java.util.Iterator;
 import java.util.Map;

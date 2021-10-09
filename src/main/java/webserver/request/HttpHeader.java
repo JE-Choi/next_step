@@ -1,12 +1,12 @@
-package webserver;
+package webserver.request;
 
 import java.util.Arrays;
-import java.util.Optional;
 
 /**
  * https://gmlwjd9405.github.io/2019/01/28/http-header-types.html
  * 기반으로 구현한 것
  * Note: package com.google.common.net.HttpHeaders 사용해도 됨.
+ * com.sun.net.httpserver.Header도 있음.
  */
 public enum HttpHeader {
     // HTTP 공통 헤더
@@ -67,10 +67,6 @@ public enum HttpHeader {
     }
 
     public static HttpHeader getTitle(final String str) {
-        Optional<HttpHeader> first = Arrays.stream(values()).filter(title -> title.key.equals(str)).findFirst();
-        if(!first.isPresent()){
-//                LOGGER.info("🍔enum에 값 없음"+str+"🍔");
-        }
         return Arrays.stream(values()).filter(title -> title.key.equals(str)).findFirst().orElse(NOT_FOUND);
     }
 }
