@@ -3,9 +3,6 @@ package webserver.request;
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
-import webserver.request.HttpRequestDefault;
-import webserver.request.RequestHeader;
-import webserver.request.RequestLine;
 
 import java.io.*;
 import java.util.Map;
@@ -34,7 +31,7 @@ public class HttpRequestDefaultTest {
         
         // RequestLine 검증
         RequestLine requestLine = httpRequestDefault.getRequestLine();
-        Assert.assertEquals(RequestLine.HttpMethod.GET, requestLine.getMethod());
+        Assert.assertEquals(HttpMethod.GET, requestLine.getMethod());
         Assert.assertEquals("/user/create?userId=userId&password=1234&name=userName&email=name1%40aa.com", requestLine.getUrl());
         Assert.assertEquals("HTTP/1.1", requestLine.getHttpVersion());
 
