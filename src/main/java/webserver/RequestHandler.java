@@ -2,15 +2,9 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
-import java.nio.file.Files;
-import java.util.Map;
-import java.util.Objects;
 
-import controller.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import util.HttpRequestUtils;
-import webserver.request.HttpMethod;
 import webserver.request.HttpRequest;
 import webserver.request.HttpRequestDefault;
 import webserver.resolver.ViewResolver;
@@ -22,7 +16,7 @@ import webserver.resolver.ViewResolverFactoryDefault;
  */
 public class RequestHandler extends Thread {
     private static final Logger log = LoggerFactory.getLogger(RequestHandler.class);
-    private final ViewResolverFactory factory = new ViewResolverFactoryDefault();
+    private static final ViewResolverFactory viewResolverFactory = new ViewResolverFactoryDefault();
 
     private Socket socket;
 
@@ -52,7 +46,7 @@ public class RequestHandler extends Thread {
 
     private void sendResponse(final OutputStream out, final HttpRequest request) {
         DataOutputStream dos = new DataOutputStream(out);
-        ViewResolver viewResolver = factory.create(request);
+        ViewResolver viewResolver = viewResolverFactory.create(request);
         response200Header(dos, viewResolver);
         responseBody(dos, viewResolver);
     }

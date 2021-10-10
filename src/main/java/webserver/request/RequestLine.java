@@ -1,9 +1,13 @@
 package webserver.request;
 
+import util.HttpRequestUtils;
+
+import java.util.HashMap;
+import java.util.Map;
 import java.util.Objects;
 
 public class RequestLine {
-    public static RequestLine NULL_OBJECT = new RequestLine("","",""){
+    public static RequestLine NULL_OBJECT = new RequestLine("", "", "") {
         @Override
         public boolean isValid() {
             return false;
@@ -13,10 +17,13 @@ public class RequestLine {
     private final HttpMethod method;
     private final String url;
     private final String httpVersion;
+    private final Map<String, String> queryString;
 
     public RequestLine(final String method, final String url, final String httpVersion) {
         this.method = HttpMethod.getMethod(method);
-        this.url = url;
+        String[] urlSplits = url.split("\\?");
+        this.url = urlSplits[0];
+        this.queryString = urlSplits.length > 1 ? HttpRequestUtils.parseQueryString(urlSplits[1]) : new HashMap<>();
         this.httpVersion = httpVersion;
     }
 
@@ -26,6 +33,10 @@ public class RequestLine {
 
     public String getUrl() {
         return url;
+    }
+
+    public Map<String, String> getQueryString() {
+        return this.queryString;
     }
 
     public String getHttpVersion() {
@@ -56,7 +67,7 @@ public class RequestLine {
         return Objects.hash(method, url, httpVersion);
     }
 
-    public boolean isValid(){
+    public boolean isValid() {
         return true;
     }
 }
