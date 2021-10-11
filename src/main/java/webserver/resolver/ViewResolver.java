@@ -10,5 +10,10 @@ public interface ViewResolver {
 
     Charset getCharset();
 
+    /**
+     * 여기서 body 생성되면 안됨.(중복요청 가능성있음)
+     */
     byte[] getBodyBytes();
+
+    String getBody();
 }

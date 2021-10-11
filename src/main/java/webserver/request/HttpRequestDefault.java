@@ -18,7 +18,7 @@ import java.util.*;
 public class HttpRequestDefault implements HttpRequest {
     private static final Logger LOGGER = LoggerFactory.getLogger(HttpRequestDefault.class);
     private RequestLine requestLine = RequestLine.NULL_OBJECT;
-    private RequestHeader requestHeaderImpl = RequestHeader.NULL_OBJECT;
+    private RequestHeader requestHeader = RequestHeader.NULL_OBJECT;
     private Map<String, String> requestBody = new HashMap<>();
 
     public HttpRequestDefault(final BufferedReader bufferedReader) throws IOException {
@@ -39,10 +39,10 @@ public class HttpRequestDefault implements HttpRequest {
 
     @Override
     public RequestHeader getRequestHeader() {
-        if (!requestHeaderImpl.isValid()) {
+        if (!requestHeader.isValid()) {
             throw new IllegalStateException("requestHeader is valid");
         }
-        return requestHeaderImpl;
+        return requestHeader;
     }
 
     @Override
@@ -54,21 +54,19 @@ public class HttpRequestDefault implements HttpRequest {
         final RequestHeader requestHeader = new RequestHeader();
         String line = bufferedReader.readLine();
         while (StringUtils.isNotEmpty(line)) {
-            addHeader(line, requestHeader);
+            appendHeader(line, requestHeader);
             line = bufferedReader.readLine();
         }
 
-        this.requestHeaderImpl = requestHeader;
+        this.requestHeader = requestHeader;
     }
 
-    // Question: 이름 괜찮은가요?
-    private void addHeader(final String line, final RequestHeader requestHeader) {
+    private void appendHeader(final String line, final RequestHeader requestHeader) {
         HttpRequestUtils.Pair pair = HttpRequestUtils.parseHeader(line);
         final boolean isRequestLine = Objects.isNull(pair);
         final boolean isRequestHeader = Objects.nonNull(pair);
         if (isRequestLine) {
-            final String[] tokens = line.split("\\s");
-            this.requestLine = new RequestLine(tokens[0], tokens[1], tokens[2]);
+            this.requestLine = new RequestLine(line);
         } else if (isRequestHeader) {
             requestHeader.put(pair.getKey(), pair.getValue());
         }

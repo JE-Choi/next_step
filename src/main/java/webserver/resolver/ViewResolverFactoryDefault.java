@@ -16,10 +16,12 @@ public class ViewResolverFactoryDefault implements ViewResolverFactory {
          * 해결1) 정적 자원에 대한 요청과 애플리케이션에 대한 요청을 분리
          * 해결2) (✔) 애플리케이션에 대한 요청을 탐색하고 없으면 정적 자원에 대한 요청으로 처리
          */
-        final Method apiByRequest = ApiReflections.findApiByRequest(request); // <- Question: 이게 여기에 있어도 될까요? ServletResolver에 들어가야 할까요?
+        final Method apiByRequest = ApiReflections.findApiByRequest(request);
+        // 애플리케이션에 대한 요청이 있으면
         if(Objects.nonNull(apiByRequest)){
             return new ServletResolver(request);
         }
+        // 애플리케이션에 대한 요청이 없으면
         return new ResourceViewResolver(request);
     }
 }

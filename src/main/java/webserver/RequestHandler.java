@@ -2,6 +2,7 @@ package webserver;
 
 import java.io.*;
 import java.net.Socket;
+import java.nio.charset.Charset;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -28,10 +29,10 @@ public class RequestHandler extends Thread {
         log.debug("New Client Connect! Connected IP : {}, Port : {}", socket.getInetAddress(),
                 socket.getPort());
         // TODO 사용자 요청에 대한 처리는 이 곳에 구현하면 된다.
-        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), "UTF-8"));
+        try (BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(socket.getInputStream(), Charset.defaultCharset()));
              OutputStream out = socket.getOutputStream()) {
             // 요청 분석
-            final HttpRequest request = setRequestHeader(bufferedReader);
+            final HttpRequest request = createHttpRequest(bufferedReader);
             log.info(request.toString());
             // 응답 생성
             sendResponse(out, request);
@@ -40,7 +41,7 @@ public class RequestHandler extends Thread {
         }
     }
 
-    private HttpRequest setRequestHeader(BufferedReader bufferedReader) throws IOException {
+    private HttpRequest createHttpRequest(BufferedReader bufferedReader) throws IOException {
         return new HttpRequestDefault(bufferedReader);
     }
 

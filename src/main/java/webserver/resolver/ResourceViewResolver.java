@@ -15,18 +15,20 @@ public class ResourceViewResolver extends ViewResolverDefault {
     private final static String INDEX_RESOURCE = "/index.html";
     private final static String ERROR_RESOURCE = "/error.html";
     private final File responseFile;
+    private final String body;
     private final String prefix = "./webapp";
 
 
     public ResourceViewResolver(final HttpRequest request) {
         super(request);
-        this.responseFile = loadFile(super.request.getRequestLine().getUrl());
+        this.responseFile = loadFile(super.request.getRequestLine().getUri().getRequestUri());
+        this.body = createBody();
     }
 
-    private File loadFile(final String url) {
-        String testUrl = prefix + "/index.html";
+    private File loadFile(final String uri) {
+        String testUri = prefix + "/index.html";
         // 파일 객체는 유효하든 아니든 생성가능.
-        final File file = new File(prefix + url);
+        final File file = new File(prefix + uri);
         if (file.canRead()) {
             return file;
         } else {
@@ -56,15 +58,24 @@ public class ResourceViewResolver extends ViewResolverDefault {
 
     @Override
     public byte[] getBodyBytes() {
+        return this.body.getBytes();
+    }
+
+    private String createBody() {
         if (this.responseFile.canRead()) {
             try {
                 List<String> lines = Files.readAllLines(this.responseFile.toPath(), this.getCharset()); // readAllBytes은 한글 인코딩 문제 가능성있음.
                 String result = lines.stream().collect(Collectors.joining());
                 LOGGER.info("로드된 파일명: " + this.responseFile.toPath());
-                return result.getBytes();
+                return result;
             } catch (IOException e) {
             }
         }
-        return super.getBodyBytes();
+        return super.getBody();
+    }
+
+    @Override
+    public String getBody() {
+        return this.body;
     }
 }

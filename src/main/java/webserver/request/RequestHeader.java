@@ -4,6 +4,9 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * Todo: build하면 불변해야 함.
+ */
 public class RequestHeader {
     public static RequestHeader NULL_OBJECT = new RequestHeader(){
         @Override

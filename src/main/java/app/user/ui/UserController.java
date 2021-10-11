@@ -1,6 +1,7 @@
-package webserver.controller;
+package app.user.ui;
 
-import controller.UserService;
+import app.user.domain.JoinUserVO;
+import app.user.domain.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webserver.request.HttpMethod;
@@ -17,21 +18,23 @@ public class UserController {
 
     @RequestMapping(value = "/join", method = HttpMethod.POST)
     @RequestMapping(value = "/join", method = HttpMethod.GET)
-    public void join(RequestWrapper requestWrapper) {
-        // Question: 중복으로 3번찍힘
-        LOGGER.debug(requestWrapper.getRequest().getRequestLine().toString());
+    public String join(RequestWrapper requestWrapper) {
+        new UserService().join(new JoinUserVO(requestWrapper));
         LOGGER.info("회원가입 실행중");
+        return "join 완료";
     }
 
     @RequestMapping(value = "/view", method = HttpMethod.GET)
-    public void view(RequestWrapper requestWrapper) {
+    public String view(RequestWrapper requestWrapper) {
         LOGGER.debug(requestWrapper.getRequest().getRequestLine().toString());
         LOGGER.info("보기 실행중");
+        return "view 완료";
     }
 
     @RequestMapping(value = "/delete", method = HttpMethod.DELETE)
-    public void delete(RequestWrapper requestWrapper) {
+    public String delete(RequestWrapper requestWrapper) {
         LOGGER.debug(requestWrapper.getRequest().getRequestLine().toString());
         LOGGER.info("삭제 실행중");
+        return "delete 완료";
     }
 }
