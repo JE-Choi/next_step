@@ -6,7 +6,7 @@ import java.util.Map;
 import app.user.domain.JoinUserVO;
 import com.google.common.collect.Maps;
 
-public class DataBase {
+public class UserDataBase {
     private static Map<String, JoinUserVO> users = Maps.newHashMap();
 
     public static void addUser(JoinUserVO joinUser) {

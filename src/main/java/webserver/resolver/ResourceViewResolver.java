@@ -3,6 +3,8 @@ package webserver.resolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webserver.request.HttpRequest;
+import webserver.resource.Resource;
+import webserver.resource.ResourceFile;
 
 import java.io.File;
 import java.io.IOException;
@@ -14,9 +16,9 @@ public class ResourceViewResolver extends ViewResolverDefault {
     private static final Logger LOGGER = LoggerFactory.getLogger(ResourceViewResolver.class);
     private final static String INDEX_RESOURCE = "/index.html";
     private final static String ERROR_RESOURCE = "/error.html";
-    private final File responseFile;
+    private final static String PREFIX = "./webapp";
+    private final Resource responseFile;
     private final String body;
-    private final String prefix = "./webapp";
 
 
     public ResourceViewResolver(final HttpRequest request) {
@@ -25,32 +27,25 @@ public class ResourceViewResolver extends ViewResolverDefault {
         this.body = createBody();
     }
 
-    private File loadFile(final String uri) {
-        String testUri = prefix + "/index.html";
-        // 파일 객체는 유효하든 아니든 생성가능.
-        final File file = new File(prefix + uri);
-        if (file.canRead()) {
-            return file;
+    private Resource loadFile(final String uri) {
+        final Resource resource = new ResourceFile(new File(PREFIX + uri));
+
+        if (resource.isValid()) {
+            return resource;
         } else {
-            /**
-             * Question: 왜 스타일이 깨질까?
-             * Note: 이렇게 에러났을때, index.html로 넣어주면
-             * 문제생긴 요청 url앞부분이 접두어로 붙어서 리소스 로드됨 (접두어 안 붙어도)=> 스타일깨짐. => Note: 리다이렉트로 수정해야 할듯.
-             * (이렇게 읽힘)HttpHead{method='GET', url='/user/js/bootstrap.min.js'
-             */
-            final File indexPage = new File(prefix + INDEX_RESOURCE);
-            final File errorPage = new File(prefix + ERROR_RESOURCE);
-            return errorPage;
-//            return indexPage.canRead() ? indexPage : errorPage;
+            final Resource index = new ResourceFile(new File(PREFIX + INDEX_RESOURCE));
+            final Resource error = new ResourceFile(new File(PREFIX + ERROR_RESOURCE));
+            return index.isValid() ? index : error;
         }
     }
 
+    /**
+     * Todo: Response Header(Content-Type: text/css;charset=UTF-8) 이렇게 데이터 세팅되도록 객체화 필요
+     */
     @Override
     public String getContentType() {
         try {
-            if (this.responseFile.canRead()) {
-                return Files.probeContentType(this.responseFile.toPath());
-            }
+            return this.responseFile.getContentType();
         } catch (IOException e) {
         }
         return super.getContentType();
@@ -62,11 +57,13 @@ public class ResourceViewResolver extends ViewResolverDefault {
     }
 
     private String createBody() {
-        if (this.responseFile.canRead()) {
+        if (this.responseFile.isValid()) {
             try {
-                List<String> lines = Files.readAllLines(this.responseFile.toPath(), this.getCharset()); // readAllBytes은 한글 인코딩 문제 가능성있음.
+                ResourceFile responseFile = (ResourceFile) this.responseFile;
+                // readAllBytes은 한글 인코딩 문제 가능성있음.
+                List<String> lines = Files.readAllLines(responseFile.toPath(), this.getCharset());
                 String result = lines.stream().collect(Collectors.joining());
-                LOGGER.info("로드된 파일명: " + this.responseFile.toPath());
+                LOGGER.info("로드된 파일명: " + responseFile.toPath());
                 return result;
             } catch (IOException e) {
             }
