@@ -1,12 +1,14 @@
 package webserver.resolver;
 
 import webserver.request.HttpRequest;
-import webserver.servlet.annotation.ApiReflections;
+import webserver.servlet.annotation.ApiReflection;
+import webserver.servlet.annotation.ApiReflectionOfMethodAnnotations;
 
 import java.lang.reflect.Method;
 import java.util.Objects;
 
 public class ViewResolverFactoryDefault implements ViewResolverFactory {
+    private final static ApiReflection API_REFLECTION = new ApiReflectionOfMethodAnnotations();
     @Override
     public ViewResolver create(HttpRequest request) {
         /**
@@ -16,7 +18,7 @@ public class ViewResolverFactoryDefault implements ViewResolverFactory {
          * 해결1) 정적 자원에 대한 요청과 애플리케이션에 대한 요청을 분리
          * 해결2) (✔) 애플리케이션에 대한 요청을 탐색하고 없으면 정적 자원에 대한 요청으로 처리
          */
-        final Method apiByRequest = ApiReflections.findApiByRequest(request);
+        final Method apiByRequest = API_REFLECTION.findApiByRequest(request);
         // 애플리케이션에 대한 요청이 있으면
         if(Objects.nonNull(apiByRequest)){
             return new ServletResolver(request);

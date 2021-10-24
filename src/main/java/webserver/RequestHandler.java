@@ -6,11 +6,17 @@ import java.nio.charset.Charset;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import util.StringUtils;
+import webserver.cookie.CookieKey;
 import webserver.request.HttpRequest;
 import webserver.request.HttpRequestDefault;
 import webserver.resolver.ViewResolver;
 import webserver.resolver.ViewResolverFactory;
 import webserver.resolver.ViewResolverFactoryDefault;
+import webserver.response.HttpResponseDefault;
+import webserver.response.Response;
+import webserver.session.HttpSessions;
+import webserver.session.Session;
 
 /**
  * Note: 참고할  RequestHandler: com.sun.tools.sjavac.server.RequestHandler
@@ -46,29 +52,23 @@ public class RequestHandler extends Thread {
     }
 
     private void sendResponse(final OutputStream out, final HttpRequest request) {
-        DataOutputStream dos = new DataOutputStream(out);
-        ViewResolver viewResolver = viewResolverFactory.create(request);
-        response200Header(dos, viewResolver);
-        responseBody(dos, viewResolver);
-    }
+        final DataOutputStream dos = new DataOutputStream(out);
+        final ViewResolver viewResolver = viewResolverFactory.create(request);
 
-    private void response200Header(final DataOutputStream dos, final ViewResolver viewResolver) {
-        try {
-            dos.writeBytes("HTTP/1.1 200 OK \r\n");
-            dos.writeBytes("Content-Type: " + viewResolver.getContentType() + ";charset=" + viewResolver.getCharset() + "\r\n");
-            dos.writeBytes("Content-Length: " + viewResolver.getBodyBytes().length + "\r\n");
-            dos.writeBytes("\r\n");
-        } catch (IOException e) {
-            log.error(e.getMessage());
-        }
-    }
+        final Response response = new HttpResponseDefault(viewResolver, dos);
+        final Session session = HttpSessions.createSession();
 
-    private void responseBody(DataOutputStream dos, final ViewResolver viewResolver) {
-        try {
-            dos.write(viewResolver.getBodyBytes(), 0, viewResolver.getBodyBytes().length);
-            dos.flush();
-        } catch (IOException e) {
-            log.error(e.getMessage());
+        if (StringUtils.isEmpty(request.getCookies().getCookie(CookieKey.JSESSIONID))) {
+              /**
+             * Todo: CookieValue객체화해서, path, max-age같은거 설정할 수 있게끔.
+             * https://ko.javascript.info/cookie
+             * Max-Age: 1시간 뒤에 쿠키가 삭제됨.
+             * httpOnly: 이 옵션은 자바스크립트 같은 클라이언트 측 스크립트가 쿠키를 사용할 수 없게 합니다
+             */
+            response.addHeader("Set-Cookie", "JSESSIONID=" + session.getId() + "; Path=/; Max-Age=" + 3600+"; Samesite=Strict; HttpOnly;");
         }
+        response.addHeader("Content-Type", viewResolver.getContentType() + ";charset=" + viewResolver.getCharset());
+        response.addHeader("Content-Length", String.valueOf(viewResolver.getBodyBytes().length));
+        response.sendResponse();
     }
 }

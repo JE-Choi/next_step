@@ -7,27 +7,28 @@ import org.reflections.util.ClasspathHelper;
 import org.reflections.util.ConfigurationBuilder;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import webserver.request.HttpMethod;
 import webserver.request.HttpRequest;
 import webserver.request.RequestLine;
-import webserver.servlet.util.ApiAnnotationUtils;
+import webserver.servlet.annotation.domain.ApiMethodMap;
+import webserver.servlet.annotation.domain.ApiMethodModifiableMap;
+import webserver.servlet.annotation.domain.ApiMethodUnmodifiableMap;
 
 import java.lang.reflect.Method;
-import java.util.*;
+import java.util.HashMap;
+import java.util.Set;
 
-public class ApiReflections {
-    private static final Logger LOGGER = LoggerFactory.getLogger(ApiReflections.class);
-    private final static String WEB_SERVER_PACKAGE_NAME = "webserver";
+public class ApiReflectionOfMethodAnnotations extends ApiReflectionAbstract {
+    private static final Logger LOGGER = LoggerFactory.getLogger(ApiReflectionOfMethodAnnotations.class);
     private final static Reflections reflections = new Reflections(
             new ConfigurationBuilder()
                     .setUrls(ClasspathHelper.forPackage(WEB_SERVER_PACKAGE_NAME))
                     .setScanners(new MethodAnnotationsScanner())
                     .filterInputsBy((String str) -> str != null && str.endsWith(".class"))
     );
-    private final static Map<String, Map<HttpMethod, Method>> API_METHOD_MAP = init();
+    private final static ApiMethodMap API_METHOD_MAP = init();
 
-    private final static Map<String, Map<HttpMethod, Method>> init() {
-        Map<String, Map<HttpMethod, Method>> map = new HashMap<>();
+    private final static ApiMethodMap init() {
+        final ApiMethodMap map = new ApiMethodModifiableMap(new HashMap<>());
         // 컨테이너 어노테이션에 접근
         Set<Method> containerMethods = reflections.getMethodsAnnotatedWith(RequestMappings.class);
         for (Method method : containerMethods) {
@@ -40,24 +41,23 @@ public class ApiReflections {
         for (Method method : methods2) {
             appendMethodMap(map, method);
         }
-        Map<String, Map<HttpMethod, Method>> result = Collections.unmodifiableMap(map);
+        ApiMethodMap result = new ApiMethodUnmodifiableMap(map);
         LOGGER.debug(result.toString());
         return result;
     }
 
-    private static void appendMethodMap(Map<String, Map<HttpMethod, Method>> map, Method method) {
+    private static void appendMethodMap(final ApiMethodMap map, Method method) {
         RequestMapping[] annotationsByType = method.getAnnotationsByType(RequestMapping.class);
         for (final RequestMapping requestMapping : annotationsByType) {
-            final String servletPath = ApiAnnotationUtils.getServletPath(method, requestMapping.method());
-            map.computeIfAbsent(servletPath, (key) -> new HashMap<>()).put(requestMapping.method(), method);
+            map.put(method, requestMapping);
         }
     }
 
     @Nullable
-    public static Method findApiByRequest(final HttpRequest request) {
+    public Method findApiByRequest(final HttpRequest request) {
         final RequestLine requestLine = request.getRequestLine();
         try {
-            return ApiReflections.API_METHOD_MAP.get(requestLine.getUri().getRequestUri()).get(requestLine.getMethod());
+            return ApiReflectionOfMethodAnnotations.API_METHOD_MAP.getMethod(requestLine.getUri().getRequestUri(), requestLine.getMethod());
         } catch (NullPointerException e) {
             return null;
         }

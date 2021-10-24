@@ -5,10 +5,17 @@ import org.slf4j.LoggerFactory;
 import util.HttpRequestUtils;
 import util.IOUtils;
 import util.StringUtils;
+import webserver.cookie.Cookie;
+import webserver.cookie.CookieKey;
+import webserver.cookie.HttpCookieDefault;
+import webserver.session.HttpSessions;
+import webserver.session.Session;
+import webserver.session.SessionKey;
 
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.util.*;
+
 /**
  * Todo:
  * - interface vs abstract
@@ -22,7 +29,7 @@ public class HttpRequestDefault implements HttpRequest {
     private Map<String, String> requestBody = new HashMap<>();
 
     public HttpRequestDefault(final BufferedReader bufferedReader) throws IOException {
-        if(Objects.isNull(bufferedReader)){
+        if (Objects.isNull(bufferedReader)) {
             return;
         }
         setHeader(bufferedReader);
@@ -59,6 +66,16 @@ public class HttpRequestDefault implements HttpRequest {
         }
 
         this.requestHeader = requestHeader;
+    }
+
+    @Override
+    public Cookie getCookies() {
+        return new HttpCookieDefault(getRequestHeader().get(HttpHeader.COOKIE));
+    }
+
+    @Override
+    public Session getSession() {
+        return HttpSessions.findSessionByKey(new SessionKey(getCookies().getCookie(CookieKey.JSESSIONID)));
     }
 
     private void appendHeader(final String line, final RequestHeader requestHeader) {

@@ -3,21 +3,21 @@ package app.user.Infrastructure;
 import java.util.Collection;
 import java.util.Map;
 
-import app.user.domain.JoinUserVO;
+import app.user.domain.UserVO;
 import com.google.common.collect.Maps;
 
 public class UserDataBase {
-    private static Map<String, JoinUserVO> users = Maps.newHashMap();
+    private static Map<String, UserVO> users = Maps.newHashMap();
 
-    public static void addUser(JoinUserVO joinUser) {
-        users.put(joinUser.getUserId(), joinUser);
+    public static void addUser(UserVO user) {
+        users.put(user.getUserId(), user);
     }
 
-    public static JoinUserVO findUserById(String userId) {
+    public static UserVO findUserById(String userId) {
         return users.get(userId);
     }
 
-    public static Collection<JoinUserVO> findAll() {
+    public static Collection<UserVO> findAll() {
         return users.values();
     }
 }

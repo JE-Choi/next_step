@@ -4,18 +4,20 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import webserver.request.HttpRequest;
 import webserver.request.RequestWrapper;
-import webserver.servlet.annotation.ApiReflections;
+import webserver.servlet.annotation.ApiReflection;
+import webserver.servlet.annotation.ApiReflectionOfMethodAnnotations;
 
 import java.lang.reflect.Method;
 
 public class ServletResolver extends ViewResolverDefault {
     private static final Logger LOGGER = LoggerFactory.getLogger(ServletResolver.class);
+    private static final ApiReflection API_REFLECTION = new ApiReflectionOfMethodAnnotations();
     private final Method method;
     private final String body;
 
     public ServletResolver(HttpRequest request) {
         super(request);
-        this.method = ApiReflections.findApiByRequest(request);
+        this.method = API_REFLECTION.findApiByRequest(request);
         this.body = createBody();
     }
 
